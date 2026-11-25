@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Acompanhamento mensal da qualidade e impressão dos relatórios da fábrica.">
+<meta name="theme-color" content="#111316">
+<title>Indicadores da Fábrica</title>
+<link rel="stylesheet" href="./style.css">
+<script type="module" src="./app.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><button type="button" class="control" id="presetMenu" aria-controls="indicatorSidebar" aria-expanded="true">Recolher menu</button>Indicadores da Fábrica</div>
+  <div class="top-actions"><button class="control" id="settingsOpen" aria-controls="settingsPanel">Configurações</button><button class="control" id="entryOpen">Inserir dados</button>
+    <input type="file" accept=".xlsx,.xlsm" id="file" hidden><button class="control" id="tv" aria-pressed="false">Modo TV</button><button class="control primary" id="print">Imprimir lote</button></div>
+</header>
+<div class="shell">
+  <aside class="sidebar" id="indicatorSidebar">
+    <h2>Indicadores</h2>
+    <nav id="presets" aria-label="Filtros prontos"></nav>
+  </aside>
+  <main>
+<section id="settingsPanel" hidden aria-labelledby="settingsTitle"></section>
+<section id="entryPanel" hidden aria-labelledby="entryTitle"></section>
+<div id="dashboard">
+    <p id="feedback" class="feedback" role="status" hidden></p>
+    <div class="page-head">
+      <div>
+        <p class="period-heading" id="periodHeading"></p>
+        <p class="note" id="dataState"></p><p class="demo-label">Dados de demonstração</p>
+        <div class="view-heading"><p class="sector" id="sector" hidden></p><h1 id="title" tabindex="-1">Indicadores da Fábrica</h1></div>
+      </div>
+      <div class="date-controls"><label for="period">Período <select id="period"></select></label><select id="month" aria-label="Mês"></select></div>
+    </div>
+    <section id="overview" class="overview-grid" aria-labelledby="title" aria-live="polite" hidden></section>
+    <div id="cards" class="cards" aria-live="polite"></div>
+    <section id="detailPlot" class="plot" aria-labelledby="chartTitle">
+      <div class="plot-head">
+        <h2 id="chartTitle"></h2>
+        <div id="chartReading" class="chart-reading" hidden><span id="plotTitleMonth"></span><strong id="plotTitleValue"></strong></div>
+      </div>
+      <div id="series" class="series" aria-label="Séries"></div>
+      <div id="plot" class="plot-body" role="group" aria-label="Gráfico de evolução mensal"></div>
+      <p id="plotNote" class="note"></p>
+    </section>
+</div>  </main>
+</div>
+<dialog id="printDialog" aria-labelledby="printTitle">
+<form method="dialog" class="dialog-head"><h2 id="printTitle">Imprimir lote</h2><button class="control" aria-label="Fechar">Fechar</button></form>
+<div class="dialog-body"><label for="printSource">Origem da impressão <select id="printSource"><option value="site">Lançamentos do site</option><option value="workbook">Planilha externa</option></select></label><p id="printScope" class="note"></p>
+  <p class="note">No Excel, abra a cópia e pressione <b>Ctrl+P</b>. Escolha <b>Imprimir Planilhas Ativas</b>.</p>
+  <div class="batch-tools"><label>Grupo <select id="printGroup"></select></label><button class="control" id="selectGroup">Marcar grupo</button><button class="control" id="clearPrint">Limpar seleção</button></div>
+  <div id="printList" class="print-list"></div>
+  <p id="printStatus" role="status"></p>
+</div>
+<div class="dialog-foot"><span id="printCount" aria-live="polite"></span><div><button id="printUpload" class="control">Selecionar arquivo</button><button id="download" class="control primary">Baixar lote</button></div></div>
+</dialog>
+<section id="printArea" aria-label="Relatórios para impressão"></section>
+</body>
+</html>

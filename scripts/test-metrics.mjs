@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {aggregate,compare} from '../public/metrics.js';
+const rate={row:5,den:21,unit:'percent'};
+const rows={5:[10,1,null,0],21:[100,10,50,0]};
+const get=(r,m)=>rows[r][m];
+assert.equal(aggregate(rate,[0,1,2,3],get).value,11/110);
+assert.equal(aggregate(rate,[0,1,2,3],get).n,2);
+assert.equal(aggregate(rate,[2],get).value,null);
+assert.equal(aggregate(rate,[3],get).value,null);
+assert.equal(aggregate({row:5,unit:'count'},[3],get).value,0);
+assert.equal(aggregate({row:12,unit:'hours'},[0],()=>90).value,1.5);
+assert.equal(compare(rate,.03,.05,true).outcome,'positive');
+assert.match(compare(rate,.03,.05,true).label,/5% → 3%/);
+assert.equal(compare(rate,.03,.05,false).outcome,'neutral');
+assert.equal(compare({row:3,unit:'money'},100,0,true).label.includes('R$'),true);
+assert.equal(compare({row:30,unit:'count'},10,2,true).outcome,'neutral');
+console.log('Passed: weighted rates, missing/zero denominators, hours, previous/current comparisons, closure eligibility and metric directions.');
+
+assert.match(compare(rate,.12,.10,true).label,/10% → 12%/);
+assert.match(compare(rate,.12,0,true).label,/0% → 12%/);
