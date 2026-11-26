@@ -211,7 +211,7 @@ function monthlyChange(indicator,category) {
  const eligible=month>0&&closed.includes(month)&&closed.includes(month-1);
  const result=compare(indicator,current,previous,eligible);
  const change=el('span',undefined,'overview-change');
- change.append(el('span',result.label,'overview-change-value'),el('span',month>0?months[month-1]+' / '+months[month]:'Sem mês anterior no ano','overview-change-months'));
+ change.append(el('span',result.label.split(' · ')[0],'overview-change-value'),el('span',month>0?months[month-1]+' / '+months[month]:'Sem mês anterior no ano','overview-change-months'));
  change.setAttribute('aria-label',result.label);
  if($('period').value!=='month'){change.replaceChildren(el('span','Comparação disponível na visão mensal'));change.setAttribute('aria-label','Comparação disponível na visão mensal');result.outcome='neutral';}
  return {change,outcome:result.outcome};
@@ -242,11 +242,7 @@ function renderOverview(range) {
     card.dataset.outcome=outcome;
     card.classList.toggle('monthly-value',range.length===1 && $('period').value==='month');
     if (value===null) card.append(el('span','Sem dados','overview-note'));
-    else if ($('period').value==='month' && !change.textContent.startsWith('Sem comparação')) {
-      const summary=change.querySelector('.overview-change-value').textContent.split(' · ').at(-1);
-      card.append(el('span',summary==='avaliar contexto'?'Variação mensal':summary,'overview-note'));
-      card.title=change.getAttribute('aria-label');
-    }
+    else if ($('period').value==='month') card.append(change);
     card.addEventListener('click',()=>{
       selectPreset(panel,metric);
       $('title').focus();
@@ -291,14 +287,13 @@ function render() {
   const accumulated=period!=='month';
   month=annual?lastMonth:selectedMonth;
   $('month').disabled=annual;
-  $('month').hidden=annual;
   $('month').value=month;
   const end=annual?months.length:month+1;
   const range=accumulated?months.slice(0,end).map((_,i)=>i):[month];
   const label=annual?'Ano '+data.year+' · dados disponíveis':accumulated?'Jan–'+months[month]+' '+data.year:monthName();
   const showingOverview=preset===overview;
-  $('dataState').hidden=data.source==='demo';
-  $('dataState').textContent=data.source==='demo'?'':data.closedMonths?.includes(month)?'Mês encerrado':'Mês em aberto';
+  $('dataState').hidden=false;
+  $('dataState').textContent=data.source==='demo'?'Demonstração':data.closedMonths?.includes(month)?'Mês encerrado':'Mês em aberto';
   $('periodHeading').textContent=label;
   $('sector').hidden=showingOverview;
   $('overview').hidden=!showingOverview;
@@ -619,10 +614,7 @@ try {
   if (!response.ok) throw new Error();
   template=await response.json();
   data={...template,source:'demo',closedMonths:Array.from({length:12},(_,i)=>i).filter(i=>Object.values(template.rows).some(row=>Number.isFinite(row[i+1])))};
-  const controls=document.querySelector('.date-controls');
-  const sourceSelect=el('select');sourceSelect.id='dataSource';sourceSelect.setAttribute('aria-label','Fonte de dados');sourceSelect.append(option('demo','Demonstração'),option('real','Dados reais'));
-  const yearInput=el('input');yearInput.type='number';yearInput.min='2020';yearInput.max='2100';yearInput.value=localStorage.getItem('kpi-view-year')||'2027';yearInput.setAttribute('aria-label','Ano dos dados');yearInput.style.width='100px';
-  const refresh=el('button','Carregar','control');const sourceLabel=el('label','Fonte ');sourceLabel.append(sourceSelect);const yearLabel=el('label','Ano ');yearLabel.append(yearInput);controls.prepend(sourceLabel,yearLabel,refresh);
+  const preferredYear=Number(localStorage.getItem('kpi-view-year'))||template.year;
   if(!$('period').options.length)$('period').append(option('month','Mês'),option('annual','Ano inteiro'),option('through-month','Até o mês selecionado'));
   function applyRecords(doc){
     data={year:doc.year,rows:{},source:'real',closedMonths:Object.entries(doc.months).filter(([,r])=>r.status==='closed').map(([m])=>Number(m))};
@@ -632,16 +624,14 @@ try {
       const ids=[42,43,44,45,46,47,48],vals=ids.map(id=>record.values[id]);
       data.rows[84][Number(m)+1]=vals.every(v=>Number.isFinite(v))?vals.reduce((a,b)=>a+b,0):null;
     }
-    sourceSelect.value='real';yearInput.value=doc.year;localStorage.setItem('kpi-view-year',doc.year);selectedMonth=lastMonth=latestMonth();updateMonthOptions();render();
+    localStorage.setItem('kpi-view-year',doc.year);selectedMonth=lastMonth=latestMonth();updateMonthOptions();render();
   }
-  async function reload(){try{status('');if(sourceSelect.value==='demo'){data={...template,source:'demo',closedMonths:Array.from({length:12},(_,i)=>i).filter(i=>Object.values(template.rows).some(row=>Number.isFinite(row[i+1])))};yearInput.value=template.year;selectedMonth=lastMonth=latestMonth();updateMonthOptions();render();return;}const r=await fetch('/api/data?year='+Number(yearInput.value));const d=await r.json();if(!r.ok)throw Error(d.error);applyRecords(d);}catch(e){status(e.message);}}
-  refresh.onclick=reload;sourceSelect.onchange=reload;
   setupSettings({presets,defaults:defaultOverviewCards.map(c=>c.panel+':'+c.metric),recommend:recommendedTrend,apply:(keys,types)=>{
     overviewCards=keys.map(key=>{const[panel,metric]=key.split(':').map(Number);return {sector:presets[panel][0],panel,metric,trend:['line','bars'].includes(types[key])?types[key]:recommendedTrend(key)};});
     if(data&&$('period').options.length)render();
   },showOverview:()=>selectPreset(overview)});
   setupEntry({apply:applyRecords});
-  try{const r=await fetch('/api/data?year='+Number(yearInput.value));if(!r.ok)throw Error();const saved=await r.json();if(Object.keys(saved.months).length)applyRecords(saved);}catch{status('Não foi possível consultar os lançamentos salvos. Exibindo demonstração.');}
+  try{const r=await fetch('/api/data?year='+preferredYear);if(!r.ok)throw Error();const saved=await r.json();if(Object.keys(saved.months).length)applyRecords(saved);}catch{status('Não foi possível consultar os lançamentos salvos. Exibindo demonstração.');}
 
   selectedMonth=lastMonth=latestMonth();
   const accumulation=el('optgroup');

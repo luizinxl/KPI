@@ -26,4 +26,4 @@ A interface usa títulos com unidade, rótulos visíveis nos campos e comparaç�
 
 O histórico de documentação do projeto registra as referências **dashboard-design** para hierarquia, seleção e legibilidade dos indicadores e **unslop-ui** para textos curtos, controles explícitos e revisão antes de salvar. A interface está em `public/index.html`, `public/style.css`, `public/app.js`, `public/entry.js` e `public/settings.js`.
 
-O cabeçalho usa uma barra em pílula. A Visão Geral dá mais espaço às tendências mensais e mostra a comparação completa ao passar o cursor pelo cartão. A fonte de dados aparece no filtro. O botão de impressão em lote saiu do cabeçalho.
+O cabeçalho usa uma barra em pílula. A Visão Geral mostra tendências e a comparação do mês anterior → mês atual, com a unidade de cada indicador. A fonte é identificada no cabeçalho e os lançamentos salvos são carregados automaticamente quando disponíveis.
