@@ -100,7 +100,9 @@ function setPresetMenu(expanded) {
   $('presetMenu').setAttribute('aria-expanded',String(expanded));
   $('indicatorSidebar').hidden=!expanded;
   document.querySelector('.shell').classList.toggle('sidebar-collapsed',!expanded);
-  $('presetMenu').textContent=expanded?'Recolher menu':'Abrir menu';
+  const label=expanded?'Recolher menu':'Abrir menu';
+  $('presetMenu').setAttribute('aria-label',label);
+  $('presetMenu').title=label;
 }
 
 $('presetMenu').addEventListener('click',()=>{
@@ -651,6 +653,7 @@ try {
   updateMonthOptions();
   navigation();
   render();
-} catch {
+} catch (error) {
+  console.error('Falha ao iniciar o painel',error);
   status('Não foi possível carregar a Base inicial. Recarregue a página.');
 }

@@ -695,3 +695,5 @@ body[data-sector] .date-controls,
  .top {gap:4px}
  .top .top-actions {width:auto}
 }
+
+.top #presetMenu {inline-size:36px;padding-inline:0;font-size:1rem}
