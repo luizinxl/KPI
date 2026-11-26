@@ -20,17 +20,10 @@ Marque de 1 a 12 gráficos e salve com o PIN ou com a sessão ativa. A seleção
 
 Os formulários informam o estado da operação e pedem confirmação antes de descartar alterações pendentes. A sessão expira após 30 minutos.
 
-## Impressão
-
-| Fonte | Fluxo |
-| --- | --- |
-| Painéis do site | Selecione os painéis no diálogo de impressão. O navegador gera tabelas com período, fonte, unidade, dados por mês e acumulado quando aplicável. |
-| Planilha externa | Selecione um arquivo XLSX ou XLSM com a guia `Base`, marque as guias e baixe a cópia `_lote`. Abra a cópia no Excel e use Ctrl+P. O navegador prepara a seleção de guias localmente. |
-
 ## Decisões de UI e UX
 
 A interface usa títulos com unidade, rótulos visíveis nos campos e comparação no formato anterior → atual. A cor indica o resultado da comparação, acompanhado de texto. Os gráficos detalhados usam o espaço disponível abaixo do cabeçalho e dos cartões, com altura mínima de 160 px. Em telas estreitas, os controles se reorganizam e a página permite rolagem vertical para preservar a leitura. A impressão usa estilos próprios.
 
-Na versão 36, a Visão Geral usa uma grade mais compacta, com destaque tipográfico e borda lateral no primeiro cartão da grade padrão. No modo TV, o conteúdo é centralizado e sua largura máxima leva em conta a altura da tela. A barra lateral tem um botão próprio para recolher e expandir.
+O histórico de documentação do projeto registra as referências **dashboard-design** para hierarquia, seleção e legibilidade dos indicadores e **unslop-ui** para textos curtos, controles explícitos e revisão antes de salvar. A interface está em `public/index.html`, `public/style.css`, `public/app.js`, `public/entry.js` e `public/settings.js`.
 
-O histórico de documentação do projeto registra as referências **dashboard-design** para hierarquia, seleção e legibilidade dos indicadores e **unslop-ui** para textos curtos, controles explícitos e revisão antes de salvar. A referência **frontend-design** orientou o destaque do primeiro indicador e a proporção do layout no modo TV. A interface está em `public/index.html`, `public/style.css`, `public/app.js`, `public/entry.js` e `public/settings.js`.
+O cabeçalho usa uma barra em pílula. A Visão Geral dá mais espaço às tendências mensais e mostra a comparação completa ao passar o cursor pelo cartão. A fonte de dados aparece no filtro. O botão de impressão em lote saiu do cabeçalho.

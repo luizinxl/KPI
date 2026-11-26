@@ -239,7 +239,12 @@ function renderOverview(range) {
     const {change,outcome}=monthlyChange(indicator,sector);
     card.dataset.outcome=outcome;
     card.classList.toggle('monthly-value',range.length===1 && $('period').value==='month');
-    card.append(el('small',coverage(summarize(indicator,range)),'coverage'),change);
+    if (value===null) card.append(el('span','Sem dados','overview-note'));
+    else if ($('period').value==='month' && !change.textContent.startsWith('Sem comparação')) {
+      const summary=change.querySelector('.overview-change-value').textContent.split(' · ').at(-1);
+      card.append(el('span',summary==='avaliar contexto'?'Variação mensal':summary,'overview-note'));
+      card.title=change.getAttribute('aria-label');
+    }
     card.addEventListener('click',()=>{
       selectPreset(panel,metric);
       $('title').focus();
@@ -290,7 +295,8 @@ function render() {
   const range=accumulated?months.slice(0,end).map((_,i)=>i):[month];
   const label=annual?'Ano '+data.year+' · dados disponíveis':accumulated?'Jan–'+months[month]+' '+data.year:monthName();
   const showingOverview=preset===overview;
-  $('dataState').textContent=data.source==='demo'?'Valores fictícios':(data.closedMonths?.includes(month)?'Mês encerrado':'Mês em aberto · valores sujeitos a atualização');
+  $('dataState').hidden=data.source==='demo';
+  $('dataState').textContent=data.source==='demo'?'':data.closedMonths?.includes(month)?'Mês encerrado':'Mês em aberto';
   $('periodHeading').textContent=label;
   $('sector').hidden=showingOverview;
   $('overview').hidden=!showingOverview;
@@ -566,7 +572,6 @@ document.addEventListener('fullscreenchange',()=>{
 });
 document.addEventListener('visibilitychange',scheduleTVRotation);
 $('printSource').onchange=()=>{selected.clear();buildPrintList();};
-$('print').addEventListener('click',()=>{buildPrintList();$('printDialog').showModal();});
 $('printGroup').append(...['Todos',...new Set([...Object.keys(reportGroups),'Qualidade'])].map(n=>option(n,n)));
 $('printGroup').addEventListener('change',buildPrintList);
 $('selectGroup').addEventListener('click',()=>{for(const {name} of printReports()) selected.add(name);buildPrintList();});
@@ -625,10 +630,9 @@ try {
       const ids=[42,43,44,45,46,47,48],vals=ids.map(id=>record.values[id]);
       data.rows[84][Number(m)+1]=vals.every(v=>Number.isFinite(v))?vals.reduce((a,b)=>a+b,0):null;
     }
-    document.querySelector('.demo-label').textContent='Dados reais';
     sourceSelect.value='real';yearInput.value=doc.year;localStorage.setItem('kpi-view-year',doc.year);selectedMonth=lastMonth=latestMonth();updateMonthOptions();render();
   }
-  async function reload(){try{status('');if(sourceSelect.value==='demo'){data={...template,source:'demo',closedMonths:Array.from({length:12},(_,i)=>i).filter(i=>Object.values(template.rows).some(row=>Number.isFinite(row[i+1])))};yearInput.value=template.year;document.querySelector('.demo-label').textContent='Demonstração';selectedMonth=lastMonth=latestMonth();updateMonthOptions();render();return;}const r=await fetch('/api/data?year='+Number(yearInput.value));const d=await r.json();if(!r.ok)throw Error(d.error);applyRecords(d);}catch(e){status(e.message);}}
+  async function reload(){try{status('');if(sourceSelect.value==='demo'){data={...template,source:'demo',closedMonths:Array.from({length:12},(_,i)=>i).filter(i=>Object.values(template.rows).some(row=>Number.isFinite(row[i+1])))};yearInput.value=template.year;selectedMonth=lastMonth=latestMonth();updateMonthOptions();render();return;}const r=await fetch('/api/data?year='+Number(yearInput.value));const d=await r.json();if(!r.ok)throw Error(d.error);applyRecords(d);}catch(e){status(e.message);}}
   refresh.onclick=reload;sourceSelect.onchange=reload;
   setupSettings({presets,defaults:defaultOverviewCards.map(c=>c.panel+':'+c.metric),recommend:recommendedTrend,apply:(keys,types)=>{
     overviewCards=keys.map(key=>{const[panel,metric]=key.split(':').map(Number);return {sector:presets[panel][0],panel,metric,trend:['line','bars'].includes(types[key])?types[key]:recommendedTrend(key)};});
