@@ -677,3 +677,21 @@ body[data-sector] .date-controls,
  .top {border-radius:24px}
  .top-actions {grid-template-columns:repeat(3,minmax(0,1fr))}
 }
+
+@media screen {
+ .top {
+  width:fit-content;
+  max-width:calc(100% - 20px);
+  min-height:0;
+  margin:6px auto;
+  padding:3px 8px;
+  gap:16px;
+ }
+ .top .brand {gap:8px}
+ .top .top-actions {gap:4px}
+ .top .control {min-height:36px;padding:5px 10px}
+}
+@media screen and (max-width:670px){
+ .top {gap:4px}
+ .top .top-actions {width:auto}
+}
