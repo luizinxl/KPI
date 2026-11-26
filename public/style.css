@@ -697,3 +697,9 @@ body[data-sector] .date-controls,
 }
 
 .top #presetMenu {inline-size:36px;padding-inline:0;font-size:1rem}
+
+.overview-grid .overview-change, .cards .overview-change {
+ justify-items:center;
+ text-align:center;
+ width:100%;
+}
