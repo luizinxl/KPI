@@ -18,5 +18,12 @@ export function compare(metric,current,previous,eligible){
  const label=value(previous)+' → '+value(current);
  const known=lowerRows.has(metric.row)||higherRows.has(metric.row);
  const favorable=lowerRows.has(metric.row)?delta<0:delta>0;
- return {outcome:!delta||!known?'neutral':favorable?'positive':'negative',label:label+' · '+(!delta?'sem alteração':!known?'avaliar contexto':favorable?'melhorou':'piorou')};
+ return {direction:delta>0?'↑':delta<0?'↓':'→',outcome:!delta||!known?'neutral':favorable?'positive':'negative',label:label+' · '+(!delta?'sem alteração':!known?'avaliar contexto':favorable?'melhorou':'piorou')};
+}
+
+// The consolidated complaints row exists only when all seven source counts are known.
+export function readMonthlyValue(values,row){
+ if(row!==84)return values[row]??null;
+ const counts=[42,43,44,45,46,47,48].map(id=>values[id]);
+ return counts.every(Number.isFinite)?counts.reduce((sum,count)=>sum+count,0):null;
 }

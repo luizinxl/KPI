@@ -1,6 +1,6 @@
 # Dados e indicadores
 
-O cadastro de entrada em `public/fields.js` usa como identificador a linha da guia Base do modelo Excel. O catálogo de gráficos fica em `public/catalogue.js`, a agregação em `public/metrics.js` e a linha calculada de reclamações em `applyRecords`, em `public/app.js`.
+O cadastro de entrada em `public/fields.js` usa como identificador a linha da guia Base do modelo Excel. O catálogo de gráficos fica em `public/catalogue.js`, a agregação em `public/metrics.js` e a linha calculada de reclamações em `readMonthlyValue`, em `public/metrics.js`. A consulta e a prévia de lançamento usam a mesma função.
 
 ## Entrada e validação
 

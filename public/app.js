@@ -1,6 +1,6 @@
 import {presets} from './catalogue.js';
 import {setupSettings} from './settings.js';
-import {aggregate,compare,metricDefinition} from './metrics.js';
+import {aggregate,compare,metricDefinition,readMonthlyValue} from './metrics.js';
 import {setupEntry} from './entry.js';
 import {openWorkbook,batchWorkbook} from './workbook.js';
 
@@ -12,10 +12,10 @@ const sectorTheme={
 };
 const overview=-1;
 const defaultOverviewCards=[
-  ['Vendas','Faturamento',0,'line'],
-  ['Compras','Pedidos e atrasos',0,'bars'],
   ['Produção','Volume produzido',0,'bars'],
   ['Qualidade','Reclamações e NNC',0,'bars'],
+  ['Compras','Pedidos e atrasos',0,'bars'],
+  ['Vendas','Faturamento',0,'line'],
   ['Assistência técnica','Envios e atrasos',0,'line'],
   ['Produção','Máquinas paradas',0,'line'],
 ].map(([sector,label,metric,trend])=>({
@@ -205,14 +205,18 @@ function overviewTrend(metric,type) {
   return trend;
 }
 
-function monthlyChange(indicator,category) {
+function monthlyChange(indicator) {
  const current=summarize(indicator,[month]).value,previous=month>0?summarize(indicator,[month-1]).value:null;
  const closed=data.closedMonths||[];
  const eligible=month>0&&closed.includes(month)&&closed.includes(month-1);
  const result=compare(indicator,current,previous,eligible);
  const change=el('span',undefined,'overview-change');
- change.append(el('span',result.label.split(' · ')[0],'overview-change-value'),el('span',month>0?months[month-1]+' / '+months[month]:'Sem mês anterior no ano','overview-change-months'));
- change.setAttribute('aria-label',result.label);
+ const [values,assessment]=result.label.split(' · ');
+ const direction=result.direction;
+ change.append(
+   el('span',direction?direction+' '+values:values,'overview-change-value'),
+   el('span',assessment?months[month-1]+' / '+months[month]+' · '+assessment:'','overview-change-months'),
+ );
  if($('period').value!=='month'){change.replaceChildren(el('span','Comparação disponível na visão mensal'));change.setAttribute('aria-label','Comparação disponível na visão mensal');result.outcome='neutral';}
  return {change,outcome:result.outcome};
 }
@@ -222,11 +226,13 @@ function renderOverview(range) {
   document.body.removeAttribute('data-sector');
   $('title').textContent='Visão geral';
   $('overview').classList.toggle('overview-dense',overviewCards.length>6);
-  $('overview').replaceChildren(...overviewCards.map(({sector,panel,metric,trend})=>{
+  $('overview').classList.toggle('overview-feature-layout',overviewCards.length===6);
+  $('overview').replaceChildren(...overviewCards.map(({sector,panel,metric,trend},index)=>{
     const indicator=presets[panel][3][metric];
     const {value}=summarize(indicator,range);
     const card=el('button',undefined,'overview-card');
     card.type='button';
+    card.classList.toggle('overview-feature',index===0);
     card.disabled=tvActive;
     card.dataset.sector=sectorTheme[sector];
     const number=el('strong',format(value,indicator.unit,indicator.unit==='money'),'overview-value');
@@ -238,11 +244,10 @@ function renderOverview(range) {
     );
     const preview=overviewTrend(indicator,trend);
     if (preview) card.append(preview);
-    const {change,outcome}=monthlyChange(indicator,sector);
+    const {change,outcome}=monthlyChange(indicator);
     card.dataset.outcome=outcome;
     card.classList.toggle('monthly-value',range.length===1 && $('period').value==='month');
-    if (value===null) card.append(el('span','Sem dados','overview-note'));
-    else if ($('period').value==='month') card.append(change);
+    if (value!==null && $('period').value==='month') card.append(change);
     card.addEventListener('click',()=>{
       selectPreset(panel,metric);
       $('title').focus();
@@ -314,7 +319,7 @@ function render() {
   $('cards').replaceChildren(...visibleMetrics.map(metric=>{
     const result=summarize(metric,range);
     const card=el('article',undefined,'card'+(metric===metrics[series]?' chart-metric':''));
-    const {change,outcome}=monthlyChange(metric,category);
+    const {change,outcome}=monthlyChange(metric);
     card.dataset.outcome=outcome;
     card.classList.toggle('monthly-value',!accumulated);
     card.append(
@@ -337,7 +342,7 @@ function render() {
     return button;
   }));
   const points=months.map((_,i)=>annual||i<=month?summarize(metric,[i]).value:null);
-  const {outcome}=monthlyChange(metric,category);
+  const {outcome}=monthlyChange(metric);
   $('detailPlot').dataset.outcome=outcome;
   renderPlot(metric,points);
   const hasMissing=points.some(value=>value===null) && points.some(Number.isFinite);
@@ -621,8 +626,7 @@ try {
     for(const [id,row] of Object.entries(template.rows))data.rows[id]=[row[0],...Array(12).fill(null)];
     for(const [m,record]of Object.entries(doc.months)){
       for(const [id,v]of Object.entries(record.values))if(data.rows[id])data.rows[id][Number(m)+1]=v;
-      const ids=[42,43,44,45,46,47,48],vals=ids.map(id=>record.values[id]);
-      data.rows[84][Number(m)+1]=vals.every(v=>Number.isFinite(v))?vals.reduce((a,b)=>a+b,0):null;
+      data.rows[84][Number(m)+1]=readMonthlyValue(record.values,84);
     }
     localStorage.setItem('kpi-view-year',doc.year);selectedMonth=lastMonth=latestMonth();updateMonthOptions();render();
   }
@@ -630,7 +634,7 @@ try {
     overviewCards=keys.map(key=>{const[panel,metric]=key.split(':').map(Number);return {sector:presets[panel][0],panel,metric,trend:['line','bars'].includes(types[key])?types[key]:recommendedTrend(key)};});
     if(data&&$('period').options.length)render();
   },showOverview:()=>selectPreset(overview)});
-  setupEntry({apply:applyRecords});
+  setupEntry({apply:applyRecords,format});
   try{const r=await fetch('/api/data?year='+preferredYear);if(!r.ok)throw Error();const saved=await r.json();if(Object.keys(saved.months).length)applyRecords(saved);}catch{status('Não foi possível consultar os lançamentos salvos. Exibindo demonstração.');}
 
   selectedMonth=lastMonth=latestMonth();
